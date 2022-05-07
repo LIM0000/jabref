@@ -1058,7 +1058,6 @@ public class JabRefFrame extends BorderPane {
         libraryTab.setOnCloseRequest(event -> {
             closeTab(libraryTab);
             libraryTab.getDataLoadingTask().cancel();
-            event.consume();
         });
 
         libraryTab.setContextMenu(createTabContextMenuFor(libraryTab, Globals.getKeyPrefs()));
@@ -1159,7 +1158,12 @@ public class JabRefFrame extends BorderPane {
             // Save was cancelled or an error occurred.
             return false;
         }
-        return response.isEmpty() || !response.get().equals(cancel);
+
+//        if (response.get().equals(cancel)) {
+//            addTab(libraryTab.getBibDatabaseContext(), true);
+//            return true;
+//        }
+        return false;
     }
 
     /**
@@ -1199,12 +1203,8 @@ public class JabRefFrame extends BorderPane {
     }
 
     private void closeTab(LibraryTab libraryTab) {
-        // empty tab without database
-        if (libraryTab == null) {
-            return;
-        }
-
         final BibDatabaseContext context = libraryTab.getBibDatabaseContext();
+
         if (context.hasEmptyEntries()) {
             confirmEmptyEntry(libraryTab, context);
         }
@@ -1212,7 +1212,6 @@ public class JabRefFrame extends BorderPane {
         if (libraryTab.isModified() && (context.getLocation() == DatabaseLocation.LOCAL)) {
             if (confirmClose(libraryTab)) {
                 removeTab(libraryTab);
-            } else {
                 return;
             }
         } else if (context.getLocation() == DatabaseLocation.SHARED) {
@@ -1220,11 +1219,12 @@ public class JabRefFrame extends BorderPane {
             context.getDBMSSynchronizer().closeSharedDatabase();
             context.clearDBMSSynchronizer();
             removeTab(libraryTab);
+            return;
         } else {
             removeTab(libraryTab);
         }
-        AutosaveManager.shutdown(context);
-        BackupManager.shutdown(context);
+        AutosaveManager.shutdown(libraryTab.getBibDatabaseContext());
+        BackupManager.shutdown(libraryTab.getBibDatabaseContext());
     }
 
     private void removeTab(LibraryTab libraryTab) {
