@@ -1156,13 +1156,16 @@ public class JabRefFrame extends BorderPane {
                 dialogService.showErrorDialogAndWait(Localization.lang("Save library"), Localization.lang("Could not save file."), ex);
             }
             // Save was cancelled or an error occurred.
-            return false;
+            LibraryTab newLibrary = addTab(libraryTab.getBibDatabaseContext(), true);
+            newLibrary.changedProperty().setValue(libraryTab.isModified());
+            return true;
         }
 
-//        if (response.get().equals(cancel)) {
-//            addTab(libraryTab.getBibDatabaseContext(), true);
-//            return true;
-//        }
+        if (response.isPresent() && response.get().equals(cancel)) {
+            LibraryTab newLibrary = addTab(libraryTab.getBibDatabaseContext(), true);
+            newLibrary.changedProperty().setValue(libraryTab.isModified());
+            return true;
+        }
         return false;
     }
 
